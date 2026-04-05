@@ -17,10 +17,10 @@ docker build -t bizenyakiko/generate-pict:latest .
 
 ### ビルド時の注意
 
-- Illustrious XL v2.0: 約6.9GB
+- Pony Diffusion V6 XL: 約6.5GB
 - ComfyUI + 依存パッケージ: 約2GB
 - **合計: 約9GBのダウンロード**
-- すべてのモデルは **public/ungated**（認証不要）
+- すべてのモデルは **public**（認証不要）
 
 ## 2. DockerHub へプッシュ
 
@@ -78,7 +78,7 @@ JOB_ID=$(curl -s -X POST \
   "https://api.runpod.ai/v2/${RUNPOD_ENDPOINT_ID}/run" \
   -H "Authorization: Bearer ${RUNPOD_API_KEY}" \
   -H "Content-Type: application/json" \
-  -d '{"input":{"prompt":"1girl, long hair, blue eyes, school uniform, standing, outdoors"}}' \
+  -d '{"input":{"prompt":"1girl, long hair, school uniform, cherry blossoms"}}' \
   | jq -r '.id')
 
 echo "Job ID: $JOB_ID"
@@ -96,7 +96,7 @@ curl -s -X POST \
   "https://api.runpod.ai/v2/${RUNPOD_ENDPOINT_ID}/runsync" \
   -H "Authorization: Bearer ${RUNPOD_API_KEY}" \
   -H "Content-Type: application/json" \
-  -d '{"input":{"prompt":"1girl, sitting, cafe, warm lighting, detailed"}}' | jq .
+  -d '{"input":{"prompt":"1girl, sitting, cafe, warm lighting"}}' | jq .
 ```
 
 ## 6. トラブルシューティング
@@ -108,7 +108,7 @@ curl -s -X POST \
 | Disk space | ディスク不足 | `docker system prune` で空き確保 |
 | Network timeout | ダウンロード失敗 | 再実行（約9GBのダウンロード） |
 
-### ジョブが FAILED になる
+### ジョブが FAILED ��なる
 
 | エラーメッセージ | 原因 | 対処 |
 |-----------------|------|------|

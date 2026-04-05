@@ -1,18 +1,24 @@
 {
   "_meta": {
-    "model_name": "Illustrious XL v2.0"
+    "model_name": "Pony Diffusion V6 XL"
   },
   "1": {
     "class_type": "CheckpointLoaderSimple",
     "inputs": {
-      "ckpt_name": "Illustrious-XL-v2.0.safetensors"
+      "ckpt_name": "ponyDiffusionV6XL.safetensors"
     }
   },
   "10": {
     "class_type": "LoraLoader",
     "inputs": {
-      "model": ["1", 0],
-      "clip": ["1", 1],
+      "model": [
+        "1",
+        0
+      ],
+      "clip": [
+        "1",
+        1
+      ],
       "lora_name": "default.safetensors",
       "strength_model": 0.0,
       "strength_clip": 0.0
@@ -21,24 +27,37 @@
   "2": {
     "class_type": "CLIPSetLastLayer",
     "inputs": {
-      "clip": ["10", 1],
+      "clip": [
+        "10",
+        1
+      ],
       "stop_at_clip_layer": -2
     }
   },
   "3": {
     "class_type": "CLIPTextEncode",
-    "_meta": { "title": "Positive Prompt" },
+    "_meta": {
+      "title": "Positive Prompt"
+    },
     "inputs": {
       "text": "",
-      "clip": ["2", 0]
+      "clip": [
+        "2",
+        0
+      ]
     }
   },
   "4": {
     "class_type": "CLIPTextEncode",
-    "_meta": { "title": "Negative Prompt" },
+    "_meta": {
+      "title": "Negative Prompt"
+    },
     "inputs": {
       "text": "",
-      "clip": ["2", 0]
+      "clip": [
+        "2",
+        0
+      ]
     }
   },
   "5": {
@@ -52,13 +71,25 @@
   "6": {
     "class_type": "KSampler",
     "inputs": {
-      "model": ["10", 0],
-      "positive": ["3", 0],
-      "negative": ["4", 0],
-      "latent_image": ["5", 0],
+      "model": [
+        "10",
+        0
+      ],
+      "positive": [
+        "3",
+        0
+      ],
+      "negative": [
+        "4",
+        0
+      ],
+      "latent_image": [
+        "5",
+        0
+      ],
       "seed": 42,
-      "steps": 28,
-      "cfg": 6.0,
+      "steps": 25,
+      "cfg": 7.0,
       "sampler_name": "euler_ancestral",
       "scheduler": "normal",
       "denoise": 1.0
@@ -67,14 +98,23 @@
   "7": {
     "class_type": "VAEDecode",
     "inputs": {
-      "samples": ["6", 0],
-      "vae": ["1", 2]
+      "samples": [
+        "6",
+        0
+      ],
+      "vae": [
+        "1",
+        2
+      ]
     }
   },
   "8": {
     "class_type": "SaveImage",
     "inputs": {
-      "images": ["7", 0],
+      "images": [
+        "7",
+        0
+      ],
       "filename_prefix": "output"
     }
   }

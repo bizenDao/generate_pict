@@ -2,17 +2,18 @@
 
 [日本語](../README.md)
 
-Anime/illustration image generation API using Illustrious XL v2.0 on RunPod Serverless.
+Anime/illustration image generation API using Pony Diffusion V6 XL on RunPod Serverless.
 
 ## Overview
 
-Generate high-quality anime and illustration images from text prompts. Uses the Illustrious XL v2.0 model (SDXL-based) on a ComfyUI backend, deployed on RunPod Serverless.
+Generate high-quality anime and illustration images from text prompts. Uses the Pony Diffusion V6 XL model (SDXL-based, anime/character-specialized) on a ComfyUI backend, deployed on RunPod Serverless.
 
 ## Features
 
 - Text-to-image anime/illustration generation
-- Danbooru tag + natural language support
-- Automatic quality tags (masterpiece, best quality, absurdres)
+- Pony-based anime and character specialization
+- Automatic quality tags (score_9, score_8_up, score_7_up)
+- Pony negative scores (score_1/2/3) in default negative prompt
 - Multiple LoRA stacking (up to 10) via URL
 - JPEG output with configurable quality
 
@@ -21,14 +22,14 @@ Generate high-quality anime and illustration images from text prompts. Uses the 
 | Parameter | Type | Default | Description |
 |-----------|------|---------|-------------|
 | `prompt` | string | (required) | Generation prompt |
-| `negative_prompt` | string | (auto) | Negative prompt (sensible default provided) |
+| `negative_prompt` | string | (auto) | Negative prompt (includes Pony score_1/2/3) |
 | `width` | int | 1024 | Image width (auto-rounded to nearest 8) |
 | `height` | int | 1024 | Image height (auto-rounded to nearest 8) |
-| `steps` | int | 28 | Inference steps |
+| `steps` | int | 25 | Inference steps |
 | `seed` | int | 42 | Random seed |
-| `cfg` | float | 6.0 | CFG scale |
+| `cfg` | float | 7.0 | CFG scale |
 | `quality` | int | 90 | JPEG quality (1-100) |
-| `no_quality_tags` | bool | false | Disable automatic quality tag appending |
+| `no_quality_tags` | bool | false | Disable automatic quality tag prepending |
 | `loras` | array | (none) | Array of LoRA objects `{url, strength}` (max 10) |
 | `lora_url` | string | (none) | Legacy: single LoRA URL (cannot use with `loras`) |
 | `lora_strength` | float | 0.8 | Legacy: single LoRA strength (-2.0 to 2.0) |
@@ -40,7 +41,7 @@ Generate high-quality anime and illustration images from text prompts. Uses the 
 ```json
 {
   "input": {
-    "prompt": "1girl, long hair, blue eyes, school uniform, standing, outdoors"
+    "prompt": "1girl, long hair, school uniform, cherry blossoms, detailed background"
   }
 }
 ```
@@ -80,14 +81,14 @@ cp .env.example .env
 curl -s -X POST "https://api.runpod.ai/v2/${ENDPOINT_ID}/runsync" \
   -H "Authorization: Bearer ${API_KEY}" \
   -H "Content-Type: application/json" \
-  -d '{"input":{"prompt":"1girl, long hair, blue eyes, school uniform"}}'
+  -d '{"input":{"prompt":"1girl, long hair, sunset, detailed"}}'
 ```
 
 ## Architecture
 
 | Component | Details |
 |-----------|---------|
-| Model | Illustrious XL v2.0 (SDXL, ~6.9GB, public/ungated) |
+| Model | Pony Diffusion V6 XL (SDXL, ~6.5GB, public) |
 | CLIP Skip | 2 |
 | Sampler | Euler Ancestral (Normal) |
 | Backend | ComfyUI |
