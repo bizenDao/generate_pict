@@ -17,6 +17,8 @@ import traceback
 import logging
 import websocket
 
+from download_lora import download_lora
+
 logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s [%(levelname)s] %(message)s",
@@ -138,6 +140,24 @@ def handler(job):
         if not (1 <= quality <= 100):
             return {"error": f"quality must be between 1 and 100, got: {quality}"}
 
+        lora_url = input_data.get("lora_url")
+        if lora_url:
+            if not isinstance(lora_url, str):
+                return {"error": "lora_url must be a string"}
+            if not lora_url.startswith(("https://", "http://")):
+                return {"error": "lora_url must start with http:// or https://"}
+            if not lora_url.endswith(".safetensors"):
+                return {"error": "lora_url must point to a .safetensors file"}
+
+        lora_strength = input_data.get("lora_strength")
+        if lora_strength is not None:
+            try:
+                lora_strength = float(lora_strength)
+            except (TypeError, ValueError):
+                return {"error": f"lora_strength must be a number, got: {lora_strength}"}
+            if not (-2.0 <= lora_strength <= 2.0):
+                return {"error": f"lora_strength must be between -2.0 and 2.0, got: {lora_strength}"}
+
         logger.info(f"Parameters: {width}x{height}, steps={steps}, seed={seed}, cfg={cfg}")
 
         with open("/model.json", "r") as f:
@@ -150,6 +170,43 @@ def handler(job):
         workflow["6"]["inputs"]["seed"] = seed
         workflow["6"]["inputs"]["steps"] = steps
         workflow["6"]["inputs"]["cfg"] = cfg
+
+        # LoRA injection
+        lora_config = {}
+        if os.path.exists("/lora.json"):
+            with open("/lora.json") as f:
+                lora_config = json.load(f)
+
+        default_strength = float(lora_config.get("default_strength", 0.8))
+        if lora_strength is None:
+            lora_strength = default_strength
+
+        lora_info = {"used": False, "source": None, "url": None, "size_mb": None}
+
+        if lora_strength == 0:
+            logger.info("LoRA strength=0, skipping LoRA injection")
+        elif lora_url:
+            try:
+                filename = download_lora(lora_url)
+            except Exception as e:
+                logger.error(f"LoRA download failed: {lora_url} - {e}")
+                return {"error": f"Failed to download LoRA: {e}"}
+            workflow["10"]["inputs"]["lora_name"] = filename
+            workflow["10"]["inputs"]["strength_model"] = lora_strength
+            workflow["10"]["inputs"]["strength_clip"] = lora_strength
+            lora_path = os.path.join("/ComfyUI/models/loras", filename)
+            lora_size = os.path.getsize(lora_path) / (1024 * 1024) if os.path.exists(lora_path) else None
+            lora_info = {"used": True, "source": "user", "url": lora_url, "size_mb": round(lora_size, 2) if lora_size else None}
+            logger.info(f"LoRA applied: {filename}, strength={lora_strength}, size={lora_size:.2f}MB")
+        elif lora_config.get("default_url"):
+            workflow["10"]["inputs"]["lora_name"] = "default.safetensors"
+            workflow["10"]["inputs"]["strength_model"] = lora_strength
+            workflow["10"]["inputs"]["strength_clip"] = lora_strength
+            default_path = os.path.join("/ComfyUI/models/loras", "default.safetensors")
+            lora_size = os.path.getsize(default_path) / (1024 * 1024) if os.path.exists(default_path) else None
+            lora_info = {"used": True, "source": "default", "url": lora_config["default_url"], "size_mb": round(lora_size, 2) if lora_size else None}
+            logger.info(f"Default LoRA applied, strength={lora_strength}")
+        # else: strength=0.0 passthrough
 
         wait_for_comfyui()
         ws, client_id = connect_websocket()
@@ -212,7 +269,10 @@ def handler(job):
             b64_image = base64.b64encode(jpeg_data).decode("utf-8")
 
             logger.info(f"Job completed: {job_id} (output {len(jpeg_data)} bytes)")
-            return {"image": f"data:image/jpeg;base64,{b64_image}"}
+            return {
+                "image": f"data:image/jpeg;base64,{b64_image}",
+                "lora": lora_info,
+            }
 
         finally:
             ws.close()

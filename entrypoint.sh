@@ -1,6 +1,9 @@
 #!/bin/bash
 set -e
 
+echo "Preparing default LoRA..."
+python3 /download_lora.py
+
 echo "Starting ComfyUI server..."
 python /ComfyUI/main.py --listen --port 8188 &
 

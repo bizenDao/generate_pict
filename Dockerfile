@@ -21,9 +21,14 @@ RUN mkdir -p /ComfyUI/models/checkpoints && \
 
 # Copy files
 COPY handler.py /handler.py
+COPY download_lora.py /download_lora.py
 COPY model.json /model.json
+COPY lora.json /lora.json
 COPY extra_model_paths.yaml /ComfyUI/extra_model_paths.yaml
 COPY entrypoint.sh /entrypoint.sh
 RUN chmod +x /entrypoint.sh
+
+# Fallback dummy LoRA for strength=0 passthrough
+RUN touch /ComfyUI/models/loras/default.safetensors
 
 ENTRYPOINT ["/entrypoint.sh"]

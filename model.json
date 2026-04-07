@@ -5,10 +5,20 @@
       "ckpt_name": "Illustrious-XL-v2.0.safetensors"
     }
   },
+  "10": {
+    "class_type": "LoraLoader",
+    "inputs": {
+      "model": ["1", 0],
+      "clip": ["1", 1],
+      "lora_name": "default.safetensors",
+      "strength_model": 0.0,
+      "strength_clip": 0.0
+    }
+  },
   "2": {
     "class_type": "CLIPSetLastLayer",
     "inputs": {
-      "clip": ["1", 1],
+      "clip": ["10", 1],
       "stop_at_clip_layer": -2
     }
   },
@@ -39,7 +49,7 @@
   "6": {
     "class_type": "KSampler",
     "inputs": {
-      "model": ["1", 0],
+      "model": ["10", 0],
       "positive": ["3", 0],
       "negative": ["4", 0],
       "latent_image": ["5", 0],
