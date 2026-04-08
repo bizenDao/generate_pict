@@ -13,6 +13,7 @@ Generate high-quality anime and illustration images from text prompts. Uses the 
 - Text-to-image anime/illustration generation
 - Danbooru tag + natural language support
 - Automatic quality tags (masterpiece, best quality, absurdres)
+- Multiple LoRA stacking (up to 10) via URL
 - JPEG output with configurable quality
 
 ## API Parameters
@@ -28,13 +29,32 @@ Generate high-quality anime and illustration images from text prompts. Uses the 
 | `cfg` | float | 6.0 | CFG scale |
 | `quality` | int | 90 | JPEG quality (1-100) |
 | `no_quality_tags` | bool | false | Disable automatic quality tag appending |
+| `loras` | array | (none) | Array of LoRA objects `{url, strength}` (max 10) |
+| `lora_url` | string | (none) | Legacy: single LoRA URL (cannot use with `loras`) |
+| `lora_strength` | float | 0.8 | Legacy: single LoRA strength (-2.0 to 2.0) |
 
 ## Usage Example
+
+### Basic
 
 ```json
 {
   "input": {
     "prompt": "1girl, long hair, blue eyes, school uniform, standing, outdoors"
+  }
+}
+```
+
+### With multiple LoRAs
+
+```json
+{
+  "input": {
+    "prompt": "1girl, long hair, blue eyes, school uniform, standing, outdoors",
+    "loras": [
+      {"url": "https://example.com/style.safetensors", "strength": 0.8},
+      {"url": "https://example.com/character.safetensors", "strength": 0.6}
+    ]
   }
 }
 ```

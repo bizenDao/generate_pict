@@ -420,6 +420,28 @@ Illustrious XL v2.0はSDXL派生モデルのため互換性は高いが、
 
 ---
 
+## Phase 2.1: 複数LoRA対応（実装済み）
+
+Phase 2の単一LoRA対応を拡張し、配列で最大10個のLoRAをスタックできるようにした。
+
+### 変更点
+
+- 新パラメータ `loras`: `[{url, strength}, ...]` の配列形式
+- LoraLoaderノードを動的にチェーン: `Checkpoint → LoRA1 → LoRA2 → ... → LoRAn → KSampler/CLIP`
+- レスポンスの `lora`（単一オブジェクト）を `loras`（配列）に変更
+- レガシー互換: `lora_url` + `lora_strength` は内部的に1要素配列に変換
+- `loras` と `lora_url` の同時指定はエラー
+- LoRA未指定時はノード10を削除し、Checkpointから直接接続（パススルー）
+
+### データフロー（複数LoRA）
+
+```
+1(Checkpoint) → 10(LoRA1) → 11(LoRA2) → ... → 2(CLIPSetLastLayer) → 3/4(CLIPTextEncode)
+1(Checkpoint) → 10(LoRA1) → 11(LoRA2) → ... → 6(KSampler)
+```
+
+---
+
 ## 今後のPhase 3に向けた布石
 
 今回の設計はLoRA学習パイプラインへの拡張を想定済み。

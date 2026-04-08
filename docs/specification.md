@@ -39,7 +39,11 @@ Authorization: Bearer {RUNPOD_API_KEY}
     "seed": 42,
     "cfg": 6.0,
     "quality": 90,
-    "no_quality_tags": false
+    "no_quality_tags": false,
+    "loras": [
+      {"url": "https://example.com/lora1.safetensors", "strength": 0.8},
+      {"url": "https://example.com/lora2.safetensors", "strength": 0.5}
+    ]
   }
 }
 ```
@@ -135,6 +139,37 @@ JPEG出力品質。
 
 `true` にすると品質タグ（masterpiece 等）の自動付与を無効化する。独自のタグ体系を使いたい場合に利用。
 
+### loras（複数LoRA対応）
+
+LoRAを配列で指定する。最大10個まで。チェーン順にLoraLoaderノードが接続される。
+
+```json
+"loras": [
+  {"url": "https://example.com/style.safetensors", "strength": 0.8},
+  {"url": "https://example.com/character.safetensors", "strength": 0.6}
+]
+```
+
+| フィールド | 型 | 必須 | 説明 |
+|-----------|-----|------|------|
+| `url` | string | はい | LoRAファイルのURL。`http(s)://`始まり、`.safetensors`終わり |
+| `strength` | float | いいえ | 適用強度（model/clip共通）。デフォルトは`lora.json`の`default_strength`(0.8)。範囲: -2.0〜2.0 |
+
+- `strength=0` のエントリは自動スキップ
+- 未指定時は `lora.json` のデフォルトLoRAが使用される
+- LoRAなし（デフォルトも未設定）の場合はCheckpointをそのまま使用
+
+#### レガシー互換（単一LoRA）
+
+従来の `lora_url` + `lora_strength` パラメータも引き続き使用可能。内部的に1要素の `loras` 配列に変換される。
+
+| パラメータ | 型 | 説明 |
+|-----------|-----|------|
+| `lora_url` | string | LoRAファイルのURL |
+| `lora_strength` | float | 適用強度 |
+
+**注意**: `loras` と `lora_url` の同時指定はエラーになる。
+
 ## レスポンス
 
 ### 送信レスポンス
@@ -155,7 +190,16 @@ JPEG出力品質。
   "id": "job-uuid-here",
   "status": "COMPLETED",
   "output": {
-    "image": "data:image/jpeg;base64,/9j/4AAQ..."
+    "image": "data:image/jpeg;base64,/9j/4AAQ...",
+    "loras": [
+      {
+        "used": true,
+        "source": "user",
+        "url": "https://example.com/style.safetensors",
+        "strength": 0.8,
+        "size_mb": 8.38
+      }
+    ]
   }
 }
 ```
@@ -199,6 +243,15 @@ JPEG出力品質。
 | `width must be between 64 and 2048` | 解像度が範囲外 |
 | `steps must be between 1 and 100` | ステップ数が範囲外 |
 | `quality must be between 1 and 100` | 品質が範囲外 |
+| `loras must be an array` | loras が配列でない |
+| `loras: maximum 10 LoRAs allowed` | LoRA数が上限超過 |
+| `loras[N].url is required and must be a string` | URL未指定 |
+| `loras[N].url must start with http:// or https://` | URLスキーム不正 |
+| `loras[N].url must point to a .safetensors file` | 拡張子不正 |
+| `loras[N].strength must be a number` | strength が数値でない |
+| `loras[N].strength must be between -2.0 and 2.0` | strength 範囲外 |
+| `Cannot specify both 'loras' and 'lora_url'` | 新旧パラメータ同時指定 |
+| `Failed to download LoRA[N]: ...` | LoRAダウンロード失敗 |
 | `ComfyUI execution error` | ワークフロー実行エラー |
 | `No images generated` | 画像生成失敗 |
 
