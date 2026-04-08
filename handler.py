@@ -140,23 +140,56 @@ def handler(job):
         if not (1 <= quality <= 100):
             return {"error": f"quality must be between 1 and 100, got: {quality}"}
 
+        # --- LoRA parameters: accept both legacy (lora_url) and new (loras array) ---
+        loras_input = input_data.get("loras")
         lora_url = input_data.get("lora_url")
-        if lora_url:
+
+        if loras_input is not None and lora_url is not None:
+            return {"error": "Cannot specify both 'loras' and 'lora_url'. Use 'loras' array."}
+
+        # Normalise to list of {url, strength}
+        lora_entries = []
+        if loras_input is not None:
+            if not isinstance(loras_input, list):
+                return {"error": "loras must be an array"}
+            if len(loras_input) > 10:
+                return {"error": "loras: maximum 10 LoRAs allowed"}
+            for i, entry in enumerate(loras_input):
+                if not isinstance(entry, dict):
+                    return {"error": f"loras[{i}] must be an object with 'url' field"}
+                url = entry.get("url")
+                if not url or not isinstance(url, str):
+                    return {"error": f"loras[{i}].url is required and must be a string"}
+                if not url.startswith(("https://", "http://")):
+                    return {"error": f"loras[{i}].url must start with http:// or https://"}
+                if not url.endswith(".safetensors"):
+                    return {"error": f"loras[{i}].url must point to a .safetensors file"}
+                strength = entry.get("strength")
+                if strength is not None:
+                    try:
+                        strength = float(strength)
+                    except (TypeError, ValueError):
+                        return {"error": f"loras[{i}].strength must be a number, got: {strength}"}
+                    if not (-2.0 <= strength <= 2.0):
+                        return {"error": f"loras[{i}].strength must be between -2.0 and 2.0, got: {strength}"}
+                lora_entries.append({"url": url, "strength": strength})
+        elif lora_url is not None:
+            # Legacy single LoRA support
             if not isinstance(lora_url, str):
                 return {"error": "lora_url must be a string"}
             if not lora_url.startswith(("https://", "http://")):
                 return {"error": "lora_url must start with http:// or https://"}
             if not lora_url.endswith(".safetensors"):
                 return {"error": "lora_url must point to a .safetensors file"}
-
-        lora_strength = input_data.get("lora_strength")
-        if lora_strength is not None:
-            try:
-                lora_strength = float(lora_strength)
-            except (TypeError, ValueError):
-                return {"error": f"lora_strength must be a number, got: {lora_strength}"}
-            if not (-2.0 <= lora_strength <= 2.0):
-                return {"error": f"lora_strength must be between -2.0 and 2.0, got: {lora_strength}"}
+            lora_strength = input_data.get("lora_strength")
+            if lora_strength is not None:
+                try:
+                    lora_strength = float(lora_strength)
+                except (TypeError, ValueError):
+                    return {"error": f"lora_strength must be a number, got: {lora_strength}"}
+                if not (-2.0 <= lora_strength <= 2.0):
+                    return {"error": f"lora_strength must be between -2.0 and 2.0, got: {lora_strength}"}
+            lora_entries.append({"url": lora_url, "strength": lora_strength})
 
         logger.info(f"Parameters: {width}x{height}, steps={steps}, seed={seed}, cfg={cfg}")
 
@@ -178,35 +211,84 @@ def handler(job):
                 lora_config = json.load(f)
 
         default_strength = float(lora_config.get("default_strength", 0.8))
-        if lora_strength is None:
-            lora_strength = default_strength
 
-        lora_info = {"used": False, "source": None, "url": None, "size_mb": None}
+        # If no user LoRAs and default exists, use it
+        if not lora_entries and lora_config.get("default_url"):
+            lora_entries.append({"url": None, "strength": None, "_default": True})
 
-        if lora_strength == 0:
-            logger.info("LoRA strength=0, skipping LoRA injection")
-        elif lora_url:
-            try:
-                filename = download_lora(lora_url)
-            except Exception as e:
-                logger.error(f"LoRA download failed: {lora_url} - {e}")
-                return {"error": f"Failed to download LoRA: {e}"}
-            workflow["10"]["inputs"]["lora_name"] = filename
-            workflow["10"]["inputs"]["strength_model"] = lora_strength
-            workflow["10"]["inputs"]["strength_clip"] = lora_strength
-            lora_path = os.path.join("/ComfyUI/models/loras", filename)
-            lora_size = os.path.getsize(lora_path) / (1024 * 1024) if os.path.exists(lora_path) else None
-            lora_info = {"used": True, "source": "user", "url": lora_url, "size_mb": round(lora_size, 2) if lora_size else None}
-            logger.info(f"LoRA applied: {filename}, strength={lora_strength}, size={lora_size:.2f}MB")
-        elif lora_config.get("default_url"):
-            workflow["10"]["inputs"]["lora_name"] = "default.safetensors"
-            workflow["10"]["inputs"]["strength_model"] = lora_strength
-            workflow["10"]["inputs"]["strength_clip"] = lora_strength
-            default_path = os.path.join("/ComfyUI/models/loras", "default.safetensors")
-            lora_size = os.path.getsize(default_path) / (1024 * 1024) if os.path.exists(default_path) else None
-            lora_info = {"used": True, "source": "default", "url": lora_config["default_url"], "size_mb": round(lora_size, 2) if lora_size else None}
-            logger.info(f"Default LoRA applied, strength={lora_strength}")
-        # else: strength=0.0 passthrough
+        # Resolve strengths
+        for entry in lora_entries:
+            if entry.get("strength") is None:
+                entry["strength"] = default_strength
+
+        # Filter out strength=0 entries
+        lora_entries = [e for e in lora_entries if e["strength"] != 0]
+
+        lora_infos = []
+
+        if not lora_entries:
+            logger.info("No LoRAs to apply (none specified or all strength=0)")
+        else:
+            # Download all LoRAs and build chain
+            filenames = []
+            for i, entry in enumerate(lora_entries):
+                if entry.get("_default"):
+                    filenames.append("default.safetensors")
+                    default_path = os.path.join("/ComfyUI/models/loras", "default.safetensors")
+                    lora_size = os.path.getsize(default_path) / (1024 * 1024) if os.path.exists(default_path) else None
+                    lora_infos.append({
+                        "used": True, "source": "default",
+                        "url": lora_config["default_url"],
+                        "strength": entry["strength"],
+                        "size_mb": round(lora_size, 2) if lora_size else None,
+                    })
+                    logger.info(f"Default LoRA [{i}], strength={entry['strength']}")
+                else:
+                    try:
+                        filename = download_lora(entry["url"])
+                    except Exception as e:
+                        logger.error(f"LoRA download failed: {entry['url']} - {e}")
+                        return {"error": f"Failed to download LoRA[{i}]: {e}"}
+                    filenames.append(filename)
+                    lora_path = os.path.join("/ComfyUI/models/loras", filename)
+                    lora_size = os.path.getsize(lora_path) / (1024 * 1024) if os.path.exists(lora_path) else None
+                    lora_infos.append({
+                        "used": True, "source": "user",
+                        "url": entry["url"],
+                        "strength": entry["strength"],
+                        "size_mb": round(lora_size, 2) if lora_size else None,
+                    })
+                    logger.info(f"LoRA [{i}]: {filename}, strength={entry['strength']}")
+
+            # Build chained LoraLoader nodes in workflow
+            # First LoRA node (10) takes input from checkpoint (1)
+            # Subsequent nodes (11, 12, ...) chain from previous LoRA node
+            # Last node's outputs connect to CLIPSetLastLayer (2) and KSampler (6)
+            for i, (filename, entry) in enumerate(zip(filenames, lora_entries)):
+                node_id = str(10 + i)
+                prev_node = str(10 + i - 1) if i > 0 else "1"
+
+                workflow[node_id] = {
+                    "class_type": "LoraLoader",
+                    "inputs": {
+                        "model": [prev_node, 0],
+                        "clip": [prev_node, 1],
+                        "lora_name": filename,
+                        "strength_model": entry["strength"],
+                        "strength_clip": entry["strength"],
+                    },
+                }
+
+            # Point downstream nodes to the last LoRA node
+            last_lora_node = str(10 + len(filenames) - 1)
+            workflow["2"]["inputs"]["clip"] = [last_lora_node, 1]
+            workflow["6"]["inputs"]["model"] = [last_lora_node, 0]
+
+        # Remove the template node 10 if no LoRAs applied (passthrough)
+        if not lora_entries and "10" in workflow:
+            del workflow["10"]
+            workflow["2"]["inputs"]["clip"] = ["1", 1]
+            workflow["6"]["inputs"]["model"] = ["1", 0]
 
         wait_for_comfyui()
         ws, client_id = connect_websocket()
@@ -271,7 +353,7 @@ def handler(job):
             logger.info(f"Job completed: {job_id} (output {len(jpeg_data)} bytes)")
             return {
                 "image": f"data:image/jpeg;base64,{b64_image}",
-                "lora": lora_info,
+                "loras": lora_infos,
             }
 
         finally:
