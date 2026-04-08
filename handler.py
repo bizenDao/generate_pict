@@ -128,9 +128,9 @@ def handler(job):
         height = to_nearest_multiple_of_8(input_data.get("height", 1024), "height")
 
         try:
-            steps = int(input_data.get("steps", 25))
+            steps = int(input_data.get("steps", 20))
             seed = int(input_data.get("seed", 42))
-            cfg = float(input_data.get("cfg", 7.0))
+            cfg = float(input_data.get("cfg", 2.5))
             quality = int(input_data.get("quality", 90))
         except (TypeError, ValueError) as e:
             return {"error": f"Invalid parameter type: {e}"}
