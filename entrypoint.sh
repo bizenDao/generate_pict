@@ -2,7 +2,7 @@
 set -e
 
 # Verify checkpoint is baked into the image
-CKPT_PATH="/ComfyUI/models/checkpoints/ponyDiffusionV6XL.safetensors"
+CKPT_PATH="/ComfyUI/models/checkpoints/momoiro-pony-v15.safetensors"
 if [ ! -f "$CKPT_PATH" ]; then
     echo "ERROR: Checkpoint not found at $CKPT_PATH. Rebuild the image."
     exit 1

@@ -1,5 +1,5 @@
 """
-RunPod Serverless Handler for Pony Diffusion V6 XL Image Generation
+RunPod Serverless Handler for Momoiro Pony v1.5 Image Generation
 Text prompt -> Generated image (JPEG, Base64)
 """
 

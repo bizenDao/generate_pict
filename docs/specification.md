@@ -65,7 +65,7 @@ score_9, score_8_up, score_7_up
 
 ### negative_prompt
 
-除外したい要素の指定。未指定時はPony用���フォルト値が使用される。
+除外したい要素の指定。未指定時はPony用デフォルト値が使用される。
 
 デフォルト値:
 ```
@@ -340,7 +340,7 @@ RunPodの環境変数に `CIVITAI_API_TOKEN` を設定すること。
 2. RunPod → コンテナ: handler.py 呼び出し
 3. handler.py:
    a. 入力バリデーション
-   b. Pony Diffusion V6 XL ワークフロー構築
+   b. Momoiro Pony v1.5 ワークフロー構築
    c. ComfyUI WebSocket 接続
    d. プロンプトキューイング
    e. 実行完了待ち

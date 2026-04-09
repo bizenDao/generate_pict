@@ -2,9 +2,9 @@
 FROM alpine:3.20 AS downloader
 RUN apk add --no-cache wget
 RUN mkdir -p /models && \
-    wget -q https://huggingface.co/AstraliteHeart/pony-diffusion-v6/resolve/main/v6.safetensors \
-      -O /models/ponyDiffusionV6XL.safetensors && \
-    echo "Downloaded $(du -h /models/ponyDiffusionV6XL.safetensors | cut -f1)"
+    wget -q https://huggingface.co/Drditone/safetensors/resolve/2221d81ba5e636be82ed93b7021339d0b4dce264/momoiropony_v15.safetensors \
+      -O /models/momoiro-pony-v15.safetensors && \
+    echo "Downloaded $(du -h /models/momoiro-pony-v15.safetensors | cut -f1)"
 
 # Stage 2: Build the actual image
 FROM bizenyakiko/genai-base:1.1
@@ -25,8 +25,8 @@ RUN pip install runpod websocket-client Pillow
 
 # Copy checkpoint from downloader stage
 RUN mkdir -p /ComfyUI/models/checkpoints
-COPY --from=downloader /models/ponyDiffusionV6XL.safetensors \
-     /ComfyUI/models/checkpoints/ponyDiffusionV6XL.safetensors
+COPY --from=downloader /models/momoiro-pony-v15.safetensors \
+     /ComfyUI/models/checkpoints/momoiro-pony-v15.safetensors
 
 # Copy files
 COPY handler.py /handler.py

@@ -2,16 +2,16 @@
 
 [日本語](../README.md)
 
-Anime/illustration image generation API using Pony Diffusion V6 XL on RunPod Serverless.
+Anime/illustration image generation API using Momoiro Pony v1.5 on RunPod Serverless.
 
 ## Overview
 
-Generate high-quality anime and illustration images from text prompts. Uses the Pony Diffusion V6 XL model (SDXL-based, anime/character-specialized) on a ComfyUI backend, deployed on RunPod Serverless.
+Generate high-quality anime and illustration images from text prompts. Uses the Momoiro Pony v1.5 model (SDXL-based, cute anime style) on a ComfyUI backend, deployed on RunPod Serverless.
 
 ## Features
 
 - Text-to-image anime/illustration generation
-- Pony-based anime and character specialization
+- Pony-based cute anime style
 - Automatic quality tags (score_9, score_8_up, score_7_up)
 - Pony negative scores (score_1/2/3) in default negative prompt
 - Multiple LoRA stacking (up to 10) via URL
@@ -88,7 +88,7 @@ curl -s -X POST "https://api.runpod.ai/v2/${ENDPOINT_ID}/runsync" \
 
 | Component | Details |
 |-----------|---------|
-| Model | Pony Diffusion V6 XL (SDXL, ~6.5GB, public) |
+| Model | Momoiro Pony v1.5 (SDXL, ~6.5GB, public mirror) |
 | CLIP Skip | 2 |
 | Sampler | Euler Ancestral (Normal) |
 | Backend | ComfyUI |
