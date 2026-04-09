@@ -2,18 +2,17 @@
 
 [日本語](../README.md)
 
-Anime/illustration image generation API using Pony Diffusion V6 XL on RunPod Serverless.
+Anime/illustration image generation API using AutismMix Pony on RunPod Serverless.
 
 ## Overview
 
-Generate high-quality anime and illustration images from text prompts. Uses the Pony Diffusion V6 XL model (SDXL-based, anime/character-specialized) on a ComfyUI backend, deployed on RunPod Serverless.
+Generate high-quality anime and illustration images from text prompts. Uses the AutismMix Pony model (SDXL-based) on a ComfyUI backend, deployed on RunPod Serverless.
 
 ## Features
 
 - Text-to-image anime/illustration generation
-- Pony-based anime and character specialization
-- Automatic quality tags (score_9, score_8_up, score_7_up)
-- Pony negative scores (score_1/2/3) in default negative prompt
+- High-quality Pony-based SDXL generation
+- Automatic quality tags (score_9, score_8_up, score_7_up, source_anime)
 - Multiple LoRA stacking (up to 10) via URL
 - JPEG output with configurable quality
 
@@ -88,9 +87,9 @@ curl -s -X POST "https://api.runpod.ai/v2/${ENDPOINT_ID}/runsync" \
 
 | Component | Details |
 |-----------|---------|
-| Model | Pony Diffusion V6 XL (SDXL, ~6.5GB, public) |
+| Model | AutismMix Pony (SDXL, ~7.2GB, public/ungated) |
 | CLIP Skip | 2 |
-| Sampler | Euler Ancestral (Normal) |
+| Sampler | DPM++ 2M Karras |
 | Backend | ComfyUI |
 | GPU | NVIDIA 8GB+ |
 | Output | JPEG (Base64) |

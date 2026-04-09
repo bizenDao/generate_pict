@@ -1,11 +1,11 @@
 {
   "_meta": {
-    "model_name": "Pony Diffusion V6 XL"
+    "model_name": "AutismMix Pony"
   },
   "1": {
     "class_type": "CheckpointLoaderSimple",
     "inputs": {
-      "ckpt_name": "ponyDiffusionV6XL.safetensors"
+      "ckpt_name": "autismmixSDXL_autismmixPony.safetensors"
     }
   },
   "10": {
@@ -90,8 +90,8 @@
       "seed": 42,
       "steps": 25,
       "cfg": 7.0,
-      "sampler_name": "euler_ancestral",
-      "scheduler": "normal",
+      "sampler_name": "dpmpp_2m",
+      "scheduler": "karras",
       "denoise": 1.0
     }
   },

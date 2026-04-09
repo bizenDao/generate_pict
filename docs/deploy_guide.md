@@ -17,22 +17,10 @@ docker build -t bizenyakiko/generate-pict:latest .
 
 ### ビルド時の注意
 
-- Pony Diffusion V6 XL: 約6.5GB
+- AutismMix Pony: 約7.2GB
 - ComfyUI + 依存パッケージ: 約2GB
-- **合計: 約9GBのダウンロード**
-- すべてのモデルは **public**（認証不要）
-
-### モデル配信元ごとのビルド方式
-
-モデルの配信元によって、Dockerイメージへのチェックポイントの含め方が異なる。詳細は [specification.md](specification.md#デプロイ要件) を参照。
-
-| 配信元 | 方式 | トークン |
-|--------|------|---------|
-| HuggingFace (ungated) | ビルド時DL（`RUN wget`） | 不要 |
-| HuggingFace (gated) | ビルド時DL（`--mount=type=secret`） | `HF_TOKEN`（ビルド時のみ） |
-| Civitai (Early Access) | 起動時DL（entrypoint） | `CIVITAI_API_TOKEN`（RunPod環境変数） |
-
-認証付きモデルを `RUN wget --header "Authorization: ..."` でビルドすると、トークンがDockerイメージのレイヤーに焼き込まれ、イメージ共有時に漏洩するリスクがある。gatedモデルにはBuildKit secret、Civitaiモデルには起動時DLを使うこと。
+- **合計: 約10GBのダウンロード**
+- すべてのモデルは **public/ungated**（認証不要）
 
 ## 2. DockerHub へプッシュ
 
@@ -118,7 +106,7 @@ curl -s -X POST \
 | エラー | 原因 | 対処 |
 |--------|------|------|
 | Disk space | ディスク不足 | `docker system prune` で空き確保 |
-| Network timeout | ダウンロード失敗 | 再実行（約9GBのダウンロード） |
+| Network timeout | ダウンロード失敗 | 再実行（約10GBのダウンロード） |
 
 ### ジョブが FAILED ��なる
 

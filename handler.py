@@ -1,5 +1,5 @@
 """
-RunPod Serverless Handler for Pony Diffusion V6 XL Image Generation
+RunPod Serverless Handler for AutismMix Pony Image Generation
 Text prompt -> Generated image (JPEG, Base64)
 """
 
@@ -120,7 +120,7 @@ def handler(job):
 
         # Append quality tags unless disabled
         if not input_data.get("no_quality_tags", False):
-            prompt = f"score_9, score_8_up, score_7_up, {prompt}"
+            prompt = f"score_9, score_8_up, score_7_up, source_anime, {prompt}"
 
         negative_prompt = input_data.get("negative_prompt", DEFAULT_NEGATIVE_PROMPT)
 

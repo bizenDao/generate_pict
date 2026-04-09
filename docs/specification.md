@@ -60,7 +60,7 @@ Authorization: Bearer {RUNPOD_API_KEY}
 
 `no_quality_tags` が false（デフォルト）の場合、自動的に以下が先頭に付与される:
 ```
-score_9, score_8_up, score_7_up
+score_9, score_8_up, score_7_up, source_anime
 ```
 
 ### negative_prompt
@@ -340,7 +340,7 @@ RunPodの環境変数に `CIVITAI_API_TOKEN` を設定すること。
 2. RunPod → コンテナ: handler.py 呼び出し
 3. handler.py:
    a. 入力バリデーション
-   b. Pony Diffusion V6 XL ワークフロー構築
+   b. AutismMix Pony ワークフロー構築
    c. ComfyUI WebSocket 接続
    d. プロンプトキューイング
    e. 実行完了待ち
