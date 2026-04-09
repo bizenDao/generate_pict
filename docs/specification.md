@@ -37,7 +37,7 @@ Authorization: Bearer {RUNPOD_API_KEY}
     "height": 1024,
     "steps": 25,
     "seed": 42,
-    "cfg": 7.0,
+    "cfg": 4.0,
     "quality": 90,
     "no_quality_tags": false,
     "loras": [
@@ -69,9 +69,9 @@ score_9, score_8_up, score_7_up
 
 デフォルト値:
 ```
-score_1, score_2, score_3, lowres, bad anatomy, bad hands, text, error,
-missing fingers, extra digit, fewer digits, cropped, worst quality,
-low quality, jpeg artifacts, signature, watermark, username, blurry
+modern, recent, old, oldest, cartoon, graphic, text, painting,
+crayon, graphite, abstract, glitch, deformed, mutated, ugly,
+disfigured, long body, lowres, bad anatomy, bad hands
 ```
 
 ### width / height
@@ -100,7 +100,7 @@ low quality, jpeg artifacts, signature, watermark, username, blurry
 | 値 | 説明 |
 |----|------|
 | デフォルト | 25 |
-| 推奨範囲 | 20-35 |
+| 推奨範囲 | 20-30 |
 | 最小 | 1 |
 | 最大 | 100 |
 
@@ -110,8 +110,8 @@ Classifier-Free Guidance スケール。高いほどプロンプトに忠実。
 
 | 値 | 説明 |
 |----|------|
-| デフォルト | 7.0 |
-| 推奨範囲 | 5.0-10.0 |
+| デフォルト | 4.0 |
+| 推奨範囲 | 3.0-6.0 |
 
 ### seed
 
@@ -340,7 +340,7 @@ RunPodの環境変数に `CIVITAI_API_TOKEN` を設定すること。
 2. RunPod → コンテナ: handler.py 呼び出し
 3. handler.py:
    a. 入力バリデーション
-   b. Pony Diffusion V6 XL ワークフロー構築
+   b. Nova 3DCG XL Illustrious v3.0 ワークフロー構築
    c. ComfyUI WebSocket 接続
    d. プロンプトキューイング
    e. 実行完了待ち

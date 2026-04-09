@@ -1,5 +1,5 @@
 """
-RunPod Serverless Handler for Pony Diffusion V6 XL Image Generation
+RunPod Serverless Handler for Nova 3DCG XL Image Generation
 Text prompt -> Generated image (JPEG, Base64)
 """
 
@@ -30,9 +30,9 @@ SERVER_ADDRESS = os.environ.get("SERVER_ADDRESS", "127.0.0.1")
 COMFYUI_PORT = "8188"
 
 DEFAULT_NEGATIVE_PROMPT = (
-    "score_1, score_2, score_3, lowres, bad anatomy, bad hands, text, error, "
-    "missing fingers, extra digit, fewer digits, cropped, worst quality, "
-    "low quality, jpeg artifacts, signature, watermark, username, blurry"
+    "modern, recent, old, oldest, cartoon, graphic, text, painting, "
+    "crayon, graphite, abstract, glitch, deformed, mutated, ugly, "
+    "disfigured, long body, lowres, bad anatomy, bad hands"
 )
 
 
@@ -130,7 +130,7 @@ def handler(job):
         try:
             steps = int(input_data.get("steps", 25))
             seed = int(input_data.get("seed", 42))
-            cfg = float(input_data.get("cfg", 7.0))
+            cfg = float(input_data.get("cfg", 4.0))
             quality = int(input_data.get("quality", 90))
         except (TypeError, ValueError) as e:
             return {"error": f"Invalid parameter type: {e}"}

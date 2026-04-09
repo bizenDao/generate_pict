@@ -414,7 +414,7 @@ DL URL例: `https://huggingface.co/ntc-ai/SDXL-LoRA-slider.oil-painting/resolve/
 ### 注意: SDXL互換性
 
 ntc-aiスライダーはSDXL base向けに学習されている。  
-Illustrious XL v2.0はSDXL派生モデルのため互換性は高いが、
+Nova 3DCG XL Illustrious v3.0はSDXL派生モデルのため互換性は高いが、
 効果の出方が本家SDXLと異なる可能性がある。  
 検証時に効果が弱い場合はstrengthを上げて調整する。
 

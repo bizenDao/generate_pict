@@ -2,18 +2,17 @@
 
 [日本語](../README.md)
 
-Anime/illustration image generation API using Pony Diffusion V6 XL on RunPod Serverless.
+3DCG/anime image generation API using Nova 3DCG XL Illustrious v3.0 on RunPod Serverless.
 
 ## Overview
 
-Generate high-quality anime and illustration images from text prompts. Uses the Pony Diffusion V6 XL model (SDXL-based, anime/character-specialized) on a ComfyUI backend, deployed on RunPod Serverless.
+Generate high-quality 3DCG-style anime and illustration images from text prompts. Uses the Nova 3DCG XL Illustrious v3.0 model (SDXL-based) on a ComfyUI backend, deployed on RunPod Serverless.
 
 ## Features
 
-- Text-to-image anime/illustration generation
-- Pony-based anime and character specialization
-- Automatic quality tags (score_9, score_8_up, score_7_up)
-- Pony negative scores (score_1/2/3) in default negative prompt
+- Text-to-image 3DCG/anime generation
+- Danbooru tag + natural language support
+- Automatic quality tags (masterpiece, best quality, absurdres)
 - Multiple LoRA stacking (up to 10) via URL
 - JPEG output with configurable quality
 
@@ -27,7 +26,7 @@ Generate high-quality anime and illustration images from text prompts. Uses the 
 | `height` | int | 1024 | Image height (auto-rounded to nearest 8) |
 | `steps` | int | 25 | Inference steps |
 | `seed` | int | 42 | Random seed |
-| `cfg` | float | 7.0 | CFG scale |
+| `cfg` | float | 4.0 | CFG scale |
 | `quality` | int | 90 | JPEG quality (1-100) |
 | `no_quality_tags` | bool | false | Disable automatic quality tag prepending |
 | `loras` | array | (none) | Array of LoRA objects `{url, strength}` (max 10) |
@@ -88,7 +87,7 @@ curl -s -X POST "https://api.runpod.ai/v2/${ENDPOINT_ID}/runsync" \
 
 | Component | Details |
 |-----------|---------|
-| Model | Pony Diffusion V6 XL (SDXL, ~6.5GB, public) |
+| Model | Nova 3DCG XL Illustrious v3.0 (SDXL, ~6.5GB, public) |
 | CLIP Skip | 2 |
 | Sampler | Euler Ancestral (Normal) |
 | Backend | ComfyUI |
