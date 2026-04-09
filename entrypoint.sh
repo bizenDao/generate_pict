@@ -1,14 +1,6 @@
 #!/bin/bash
 set -e
 
-# Verify checkpoint is baked into the image
-CKPT_PATH="/ComfyUI/models/checkpoints/UnholyDesireMixSinisterAesthetic_V8.safetensors"
-if [ ! -f "$CKPT_PATH" ]; then
-    echo "ERROR: Checkpoint not found. Rebuild the image with --build-arg CIVITAI_API_TOKEN=xxx"
-    exit 1
-fi
-echo "Checkpoint present ($(du -h "$CKPT_PATH" | cut -f1))"
-
 echo "Preparing default LoRA..."
 python3 /download_lora.py
 
