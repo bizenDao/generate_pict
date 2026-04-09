@@ -1,6 +1,14 @@
 #!/bin/bash
 set -e
 
+# Verify checkpoint is baked into the image
+CKPT_PATH="/ComfyUI/models/checkpoints/ponyDiffusionV6XL.safetensors"
+if [ ! -f "$CKPT_PATH" ]; then
+    echo "ERROR: Checkpoint not found at $CKPT_PATH. Rebuild the image."
+    exit 1
+fi
+echo "Checkpoint present ($(du -h "$CKPT_PATH" | cut -f1))"
+
 echo "Preparing default LoRA..."
 python3 /download_lora.py
 
