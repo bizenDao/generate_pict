@@ -1,12 +1,12 @@
-# generate_pict
+# bizeny_sinister
 
 [日本語](../README.md)
 
-Anime/illustration image generation API using Pony Diffusion V6 XL on RunPod Serverless.
+Anime/illustration image generation API using Unholy Desire Mix - Sinister Aesthetic v8 on RunPod Serverless.
 
 ## Overview
 
-Generate high-quality anime and illustration images from text prompts. Uses the Pony Diffusion V6 XL model (SDXL-based, anime/character-specialized) on a ComfyUI backend, deployed on RunPod Serverless.
+Generate high-quality anime and illustration images from text prompts. Uses the Unholy Desire Mix - Sinister Aesthetic v8 model (Illustrious-based) on a ComfyUI backend, deployed on RunPod Serverless.
 
 ## Features
 
@@ -25,9 +25,9 @@ Generate high-quality anime and illustration images from text prompts. Uses the 
 | `negative_prompt` | string | (auto) | Negative prompt (includes Pony score_1/2/3) |
 | `width` | int | 1024 | Image width (auto-rounded to nearest 8) |
 | `height` | int | 1024 | Image height (auto-rounded to nearest 8) |
-| `steps` | int | 25 | Inference steps |
+| `steps` | int | 20 | Inference steps |
 | `seed` | int | 42 | Random seed |
-| `cfg` | float | 7.0 | CFG scale |
+| `cfg` | float | 2.5 | CFG scale |
 | `quality` | int | 90 | JPEG quality (1-100) |
 | `no_quality_tags` | bool | false | Disable automatic quality tag prepending |
 | `loras` | array | (none) | Array of LoRA objects `{url, strength}` (max 10) |
@@ -65,8 +65,11 @@ Generate high-quality anime and illustration images from text prompts. Uses the 
 ### 1. Build Docker Image
 
 ```bash
-docker build -t generate-pict .
+docker build -t bizeny-sinister .
 ```
+
+The checkpoint is not included in the image. It is downloaded at container startup.
+Set `CIVITAI_API_TOKEN` as an environment variable in RunPod.
 
 ### 2. Deploy to RunPod
 
@@ -88,9 +91,10 @@ curl -s -X POST "https://api.runpod.ai/v2/${ENDPOINT_ID}/runsync" \
 
 | Component | Details |
 |-----------|---------|
-| Model | Pony Diffusion V6 XL (SDXL, ~6.5GB, public) |
+| Model | Unholy Desire Mix - Sinister Aesthetic v8 (Illustrious-based, ~6.5GB) |
 | CLIP Skip | 2 |
-| Sampler | Euler Ancestral (Normal) |
+| Sampler | DPM++ 2M (Karras) |
+| CFG | 2.5 |
 | Backend | ComfyUI |
 | GPU | NVIDIA 8GB+ |
 | Output | JPEG (Base64) |

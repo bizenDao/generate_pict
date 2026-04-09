@@ -5,40 +5,39 @@
 - Docker がインストール済み
 - DockerHub アカウント (`bizenyakiko`)
 - RunPod アカウント + API キー
+- Civitai APIトークン（Early Access期間中のみ）
 
 ## 1. Docker イメージのビルド
 
 ```bash
-cd /Users/goodsun/develop/bizeny/generate_pict
+cd /Users/goodsun/develop/ciel-image-generator/bizeny_sinister
 
-# ビルド（モデルダウンロードを含むため10〜20分程度）
-docker build -t bizenyakiko/generate-pict:latest .
+docker build -t bizenyakiko/bizeny-sinister:latest .
 ```
 
 ### ビルド時の注意
 
-- Pony Diffusion V6 XL: 約6.5GB
+- チェックポイントはイメージに含まれない（コンテナ起動時にDL）
 - ComfyUI + 依存パッケージ: 約2GB
-- **合計: 約9GBのダウンロード**
-- すべてのモデルは **public**（認証不要）
+- イメージサイズは bizeny_imd より約6.5GB小さい
 
-### モデル配信元ごとのビルド方式
+### なぜビルド時にモデルを含めないのか
 
-モデルの配信元によって、Dockerイメージへのチェックポイントの含め方が異なる。詳細は [specification.md](specification.md#デプロイ要件) を参照。
+Sinister AestheticはCivitaiの認証付きモデルのため、ビルド時にダウンロードすると `CIVITAI_API_TOKEN` がDockerイメージのレイヤーに残り、イメージを共有した際にトークンが漏洩するリスクがある。起動時DL方式ならトークンはRunPodの環境変数として渡すだけでイメージには一切残らない。
 
-| 配信元 | 方式 | トークン |
-|--------|------|---------|
-| HuggingFace (ungated) | ビルド時DL（`RUN wget`） | 不要 |
-| HuggingFace (gated) | ビルド時DL（`--mount=type=secret`） | `HF_TOKEN`（ビルド時のみ） |
-| Civitai (Early Access) | 起動時DL（entrypoint） | `CIVITAI_API_TOKEN`（RunPod環境変数） |
+なお、Network Volumeをマウントすれば初回DL後はチェックポイントがキャッシュされ、2回目以降のコールドスタートではDLをスキップできる。
 
-認証付きモデルを `RUN wget --header "Authorization: ..."` でビルドすると、トークンがDockerイメージのレイヤーに焼き込まれ、イメージ共有時に漏洩するリスクがある。gatedモデルにはBuildKit secret、Civitaiモデルには起動時DLを使うこと。
+### Civitai APIトークンの取得
+
+1. https://civitai.com にログイン
+2. Settings > API Keys
+3. 新しいAPIキーを作成
 
 ## 2. DockerHub へプッシュ
 
 ```bash
 docker login
-docker push bizenyakiko/generate-pict:latest
+docker push bizenyakiko/bizeny-sinister:latest
 ```
 
 ## 3. RunPod Serverless Endpoint の作成
@@ -51,15 +50,23 @@ docker push bizenyakiko/generate-pict:latest
 
 | 設定項目 | 値 |
 |---------|-----|
-| Endpoint Name | `generate-pict` |
-| Container Image | `bizenyakiko/generate-pict:latest` |
+| Endpoint Name | `bizeny-sinister` |
+| Container Image | `bizenyakiko/bizeny-sinister:latest` |
 | Container Disk | 30 GB |
 | GPU | NVIDIA 8GB+ (RTX 3070 等) |
 | GPU Count | 1 |
 | Max Workers | 1（必要に応じて増加） |
 | Idle Timeout | 5s（コスト優先）/ 300s（レスポンス優先） |
 
-4. **Deploy** をクリック
+4. **Environment Variables** に以下を追加:
+
+| 変数名 | 値 | 説明 |
+|--------|-----|------|
+| `CIVITAI_API_TOKEN` | (Civitaiで取得したトークン) | モデルDL用（Early Access期間中は必須） |
+
+5. **Network Volume** をマウント（推奨）: チェックポイントがキャッシュされ、2回目以降のコールドスタートでDLスキップ
+
+6. **Deploy** をクリック
 
 ### Endpoint ID の取得
 
@@ -118,7 +125,15 @@ curl -s -X POST \
 | エラー | 原因 | 対処 |
 |--------|------|------|
 | Disk space | ディスク不足 | `docker system prune` で空き確保 |
-| Network timeout | ダウンロード失敗 | 再実行（約9GBのダウンロード） |
+| Network timeout | ダウンロード失敗 | 再実行 |
+
+### コンテナ起動時にモデルDLが失敗する
+
+| エラー | 原因 | 対処 |
+|--------|------|------|
+| CIVITAI_API_TOKEN is required | 環境変数未設定 | RunPodのEnvironment Variablesに追加 |
+| 403 Forbidden | トークン無効/期限切れ | Civitaiでトークンを再発行 |
+| Network timeout | DL失敗 | コンテナ再起動で再試行 |
 
 ### ジョブが FAILED ��なる
 
